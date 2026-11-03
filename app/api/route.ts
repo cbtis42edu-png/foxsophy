@@ -306,7 +306,7 @@ export async function POST(request: NextRequest) {
         const model = client.getGenerativeModel({
           model: modelName,
           generationConfig: { responseMimeType: "application/json" },
-        }, { timeout: 8000 });
+        }, { timeout: 20000 });
         try {
           const result = await model.generateContent(prompt);
           responseText = result.response.text();
