@@ -67,6 +67,29 @@ export default function Home() {
     setSelectedGroup(result.group); setQuestions(result.questions); setAnswers(result.answers);
     if (teacher) setMode("teacher");
   }
+  useEffect(() => {
+    const code = selectedGroup?.code;
+    if (!code) return;
+    let active = true;
+    let refreshing = false;
+    const refresh = async () => {
+      if (refreshing || document.visibilityState !== "visible") return;
+      refreshing = true;
+      try {
+        const result = await api<{ questions: Question[]; answers: Answer[] }>("GET", `view=group&code=${encodeURIComponent(code)}`);
+        if (active) {
+          setQuestions(result.questions);
+          setAnswers(result.answers);
+        }
+      } catch {
+        // Keep the current view during transient network or session errors.
+      } finally {
+        refreshing = false;
+      }
+    };
+    const timer = window.setInterval(refresh, 2500);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [selectedGroup?.code]);
   async function enterTeacher(email: string, password: string, createAccount: boolean) {
     const authResult = await api<{ confirmationRequired?: boolean }>("POST", {
       action: createAccount ? "teacher_signup" : "teacher_login",
