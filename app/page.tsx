@@ -48,13 +48,18 @@ export default function Home() {
     clearMessages();
     setMode(nextMode);
     setSelectedGroup(null); setQuestions([]); setAnswers([]);
-    setLoggedIn(false); setGroups([]);
     if (nextMode === "student") {
+      setLoggedIn(false); setGroups([]);
       await api("POST", { action: "teacher_logout" }).catch(() => {});
     } else {
-      await api("POST", { action: "student_logout" }).catch(() => {});
-      sessionStorage.removeItem("aula-student");
-      setStudent(null);
+      try {
+        const result = await api<{ groups: Group[] }>("GET", "view=groups");
+        setGroups(result.groups);
+        setLoggedIn(true);
+      } catch {
+        setGroups([]);
+        setLoggedIn(false);
+      }
     }
   }
   async function run(task: () => Promise<void>) {
