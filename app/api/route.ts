@@ -302,6 +302,7 @@ export async function POST(request: NextRequest) {
         "gemini-3.8-flash",
       ]));
       let responseText: string | null = null;
+      const failures: { status: number; timedOut: boolean }[] = [];
       for (const modelName of modelNames) {
         const model = client.getGenerativeModel({
           model: modelName,
@@ -314,6 +315,7 @@ export async function POST(request: NextRequest) {
         } catch (error) {
           const status = typeof error === "object" && error !== null && "status" in error ? Number(error.status) : 0;
           const timedOut = error instanceof Error && /timeout|timed out|aborted/i.test(error.message);
+          failures.push({ status, timedOut });
           if (!timedOut && ![404, 429, 503].includes(status)) {
             console.error("Gemini generation failed", error);
             return jsonError("Gemini no pudo generar la revisión. Verifica la clave y el acceso al modelo.", 502);
@@ -321,7 +323,18 @@ export async function POST(request: NextRequest) {
           console.warn(`Gemini model ${modelName} unavailable (${timedOut ? "timeout" : status}); trying fallback.`);
         }
       }
-      if (!responseText) return jsonError("Gemini tardó demasiado o está temporalmente ocupado. Inténtalo de nuevo en unos segundos.", 503);
+      if (!responseText) {
+        if (failures.length && failures.every((failure) => failure.status === 404)) {
+          return jsonError("No se encontró ningún modelo Gemini configurado. Revisa GEMINI_MODEL en Render.", 503);
+        }
+        if (failures.some((failure) => failure.status === 429 || failure.status === 503)) {
+          return jsonError("Gemini está ocupado o alcanzó el límite de uso. Inténtalo más tarde o revisa la cuota de tu clave.", 503);
+        }
+        if (failures.some((failure) => failure.timedOut)) {
+          return jsonError("Gemini excedió el tiempo de espera de 20 segundos. Inténtalo de nuevo.", 504);
+        }
+        return jsonError("Gemini no pudo completar la revisión. Revisa los registros del servidor.", 502);
+      }
       let evaluation: { score: number; feedback: string };
       try {
         evaluation = JSON.parse(responseText) as { score: number; feedback: string };
