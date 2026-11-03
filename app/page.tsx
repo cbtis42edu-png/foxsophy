@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { ArrowUp, Check, LoaderCircle, LogOut, MessageCircle, Plus, Sparkles, Users } from "lucide-react";
 
@@ -172,7 +173,7 @@ export default function Home() {
   const entryMode = !selectedGroup && (mode === "student" || !loggedIn);
 
   return <div className="shell">
-    <header className="topbar"><div className="brand"><span className="brand-mark"><MessageCircle size={18} /></span><span>Foxsophie</span></div><span className="mode-tag">{mode === "teacher" ? "Profesor" : "Alumno"}</span></header>
+    <header className="topbar"><div className="brand"><Image className="brand-logo" src="/foxsophy-logo.png" alt="Foxsophie" width={420} height={210} priority /></div><span className="mode-tag">{mode === "teacher" ? "Profesor" : "Alumno"}</span></header>
     <main className={`main ${entryMode ? "main-entry" : ""}`}>
       <section className={`intro ${entryMode ? "entry-aside" : ""}`}>
         {entryMode ? <>

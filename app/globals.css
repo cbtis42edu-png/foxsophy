@@ -20,9 +20,9 @@ button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 .shell { min-height: 100vh; }
-.topbar { min-height: 76px; display: flex; align-items: center; justify-content: space-between; padding: 10px max(24px, calc((100vw - 1240px) / 2)); background: transparent; color: var(--text); }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .2px; }
-.brand-mark { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: var(--text); box-shadow: 0 3px 0 #bd5a05; }
+.topbar { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px max(16px, calc((100vw - 1240px) / 2)); background: #ffffff; color: var(--text); }
+.brand { display: flex; align-items: center; flex-shrink: 0; }
+.brand-logo { display: block; width: min(210px, 52vw); height: auto; }
 .top-note { color: var(--muted); font-size: 12px; }
 .mode-tag { padding: 10px 22px; border-radius: 999px; background: var(--surface-raised); color: var(--text); font-weight: 800; }
 .main { width: min(100% - 32px, 1240px); margin: 0 auto; padding: 28px 0 80px; }
