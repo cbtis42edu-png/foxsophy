@@ -147,7 +147,16 @@ export async function POST(request: NextRequest) {
       const auth = getSupabaseAuth();
       if (body.action === "teacher_signup") {
         const { data, error } = await auth.auth.signUp({ email, password });
-        if (error) return jsonError("No se pudo crear la cuenta docente. Revisa el correo o inténtalo de nuevo.", 400);
+        if (error) {
+          const code = error.code ?? "";
+          console.error("Supabase teacher signup failed", { code, status: error.status });
+          if (error.status === 429 || code.includes("rate")) return jsonError("Supabase limitó los registros por ahora. Espera un poco y vuelve a intentar.", 429);
+          if (code.includes("weak_password")) return jsonError("Supabase rechazó la contraseña. Usa una contraseña más segura de al menos 12 caracteres.", 400);
+          if (code.includes("signup_disabled")) return jsonError("El registro está desactivado en Supabase. Habilita los registros por correo en Authentication.", 403);
+          if (code.includes("user_already_exists") || code.includes("email_exists")) return jsonError("Ya existe una cuenta con ese correo. Prueba iniciar sesión.", 409);
+          if (code.includes("email_address_invalid")) return jsonError("El correo no tiene un formato válido.", 400);
+          return jsonError("Supabase no pudo crear la cuenta. Revisa que Email Auth y los registros estén habilitados.", 400);
+        }
         if (!data.user || !data.session) return NextResponse.json({ confirmationRequired: true });
         const response = NextResponse.json({ ok: true });
         response.cookies.delete(studentCookie);
